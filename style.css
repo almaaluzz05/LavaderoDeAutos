@@ -388,8 +388,9 @@ select:focus {
         linear-gradient(
             135deg,
             #26343b,
-            #0d151a
+            #7e929e
         );
+        background-image: url(https://share.google/images/JDXSkYQS5kwJps1io);
 }
 .imagen-servicio::after {
     content: "AUTO";
