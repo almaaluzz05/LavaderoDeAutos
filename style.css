@@ -9,8 +9,8 @@
 :root {
     --negro: #0b1115;
     --negro-claro: #121a1f;
-    --verde: #c9ff38;
-    --verde-oscuro: #9fcf20;
+    --violeta: #635b83;
+    --violeta-oscuro: #392f5a;
     --blanco: #ffffff;
     --gris-claro: #f3f5f6;
     --gris: #69747a;
@@ -97,9 +97,9 @@ nav {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--verde);
+    border: 2px solid var(--violeta);
     border-radius: 50%;
-    color: var(--verde);
+    color: var(--violeta);
     font-size: 20px;
     font-weight: bold;
 }
@@ -129,13 +129,13 @@ nav {
     transition: var(--transicion);
 }
 .menu a:hover {
-    color: var(--verde);
+    color: var(--violeta);
     transform: translateY(-2px);
 }
 /* BOTON NAV */
 .boton-nav {
     padding: 12px 22px;
-    background: var(--verde);
+    background: var(--violeta);
     color: var(--negro);
     border-radius: 30px;
     font-size: 13px;
@@ -174,7 +174,7 @@ nav {
 }
 .subtitulo {
     margin-bottom: 15px;
-    color: var(--verde);
+    color: var(--violeta);
     font-size: 12px;
     font-weight: bold;
     letter-spacing: 3px;
@@ -187,7 +187,7 @@ nav {
     letter-spacing: -4px;
 }
 .hero h1 span {
-    color: var(--verde);
+    color: var(--violeta);
 }
 .descripcion {
     margin-bottom: 35px;
@@ -205,7 +205,7 @@ nav {
     padding: 16px 27px;
     border: none;
     border-radius: 50px;
-    background: var(--verde);
+    background: var(--violeta);
     color: var(--negro);
     font-size: 13px;
     font-weight: 900;
@@ -231,8 +231,8 @@ nav {
     transition: var(--transicion);
 }
 .boton-secundario:hover {
-    border-color: var(--verde);
-    background: var(--verde);
+    border-color: var(--violeta);
+    background: var(--violeta);
     transform: translateY(-2px);
 }
 /* =========================
@@ -254,7 +254,7 @@ nav {
     letter-spacing: -2px;
 }
 .introduccion h2 span {
-    color: var(--verde-oscuro);
+    color: var(--violeta-oscuro);
 }
 .introduccion .contenedor > p {
     color: var(--gris);
@@ -305,7 +305,7 @@ form {
     box-shadow: var(--sombra);
 }
 .numero-paso {
-    color: var(--verde-oscuro);
+    color: var(--violeta-oscuro);
     font-size: 20px;
     font-weight: 900;
     letter-spacing: 2px;
@@ -341,7 +341,7 @@ select {
 }
 input:focus,
 select:focus {
-    border-color: var(--verde-oscuro);
+    border-color: var(--violeta-oscuro);
     background: var(--blanco);
     box-shadow:
         0 0 0 3px rgba(201, 255, 56, 0.15);
@@ -372,7 +372,7 @@ select:focus {
 }
 .tarjeta-servicio:hover {
     transform: translateY(-10px);
-    border-color: var(--verde);
+    border-color: var(--violeta);
     box-shadow:
         0 20px 45px rgba(0, 0, 0, 0.3);
 }
@@ -393,7 +393,6 @@ select:focus {
         background-image: url(https://share.google/images/JDXSkYQS5kwJps1io);
 }
 .imagen-servicio::after {
-    content: "AUTO";
     position: absolute;
     left: 18px;
     bottom: 15px;
@@ -404,7 +403,7 @@ select:focus {
 .imagen-servicio span {
     position: relative;
     z-index: 2;
-    color: var(--verde);
+    color: var(--violeta);
     font-size: 12px;
     font-weight: bold;
 }
@@ -413,7 +412,7 @@ select:focus {
     top: 15px;
     left: 15px;
     padding: 6px 10px;
-    background: var(--verde);
+    background: var(--violeta);
     color: var(--negro);
     border-radius: 20px;
     font-size: 9px;
@@ -435,7 +434,7 @@ select:focus {
 .contenido-servicio strong {
     display: block;
     margin-bottom: 20px;
-    color: var(--verde);
+    color: var(--violeta);
     font-size: 20px;
 }
 /* =========================
@@ -466,7 +465,7 @@ select:focus {
         );
 }
 .detalle-imagen span {
-    color: var(--verde);
+    color: var(--violeta);
     font-size: 50px;
     font-weight: 900;
 }
@@ -484,7 +483,7 @@ select:focus {
 }
 .precio {
     display: block;
-    color: var(--verde-oscuro);
+    color: var(--violeta-oscuro);
     font-size: 24px;
 }
 .detalle-contenido h3 {
@@ -500,7 +499,7 @@ select:focus {
 .detalle-contenido li::before {
     content: "✓";
     margin-right: 8px;
-    color: var(--verde-oscuro);
+    color: var(--violeta-oscuro);
     font-weight: bold;
 }
 /* =========================
@@ -539,8 +538,8 @@ select:focus {
     transition: var(--transicion);
 }
 .horarios-disponibles span:hover {
-    border-color: var(--verde);
-    background: var(--verde);
+    border-color: var(--violeta);
+    background: var(--violeta);
     color: var(--negro);
     transform: translateY(-2px);
 }
@@ -569,9 +568,9 @@ select:focus {
 }
 .encabezado-confirmacion > span {
     padding: 8px 15px;
-    border: 1px solid var(--verde);
+    border: 1px solid var(--violeta);
     border-radius: 30px;
-    color: var(--verde);
+    color: var(--violeta);
     font-size: 10px;
     font-weight: bold;
 }
@@ -642,7 +641,7 @@ footer {
     transition: var(--transicion);
 }
 .redes a:hover {
-    color: var(--verde);
+    color: var(--violeta);
 }
 .footer-bottom {
     display: flex;
