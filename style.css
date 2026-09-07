@@ -85,13 +85,11 @@ nav {
 }
 /* LOGO */
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: var(--blanco);
+    width: 120px;
+    height: auto;
 }
 .logo::before {
-    content: "A";
+
     width: 42px;
     height: 42px;
     display: flex;
