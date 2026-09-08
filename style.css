@@ -7,14 +7,14 @@
    VARIABLES
 ========================= */
 :root {
-    --negro: #0b1115;
+    --negro: #454568;
     --negro-claro: #121a1f;
     --violeta: #8c93f5;
     --violeta-oscuro: #7358cc;
     --blanco: #ffffff;
     --gris-claro: #f3f5f6;
-    --gris: #69747a;
-    --gris-oscuro: #202a2f;
+    --gris: #000000;
+    --gris-oscuro: #83779e;
     --borde: #dfe4e7;
     --ancho: 1200px;
     --sombra:
@@ -97,33 +97,6 @@ nav {
     object-fit: cover;
     border-radius: 50%;
     display: block;
-
-}
-.logo::before {
-
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--violeta);
-    border-radius: 50%;
-    color: var(--violeta);
-    font-size: 20px;
-    font-weight: bold;
-}
-.logo span {
-    display: block;
-    font-size: 19px;
-    font-weight: bold;
-    letter-spacing: 3px;
-}
-.logo small {
-    display: block;
-    margin-top: -3px;
-    color: #9aa3a8;
-    font-size: 8px;
-    letter-spacing: 4px;
 }
 /* MENU */
 .menu {
@@ -131,9 +104,9 @@ nav {
     align-items: center;
     gap: 35px;
 }
-.menu a {
-    color: #e5e9eb;
-    font-size: 14px;
+.menu a { /* botones */
+    color: #e8e5eb;
+    font-size: 16px;
     font-weight: 600;
     transition: var(--transicion);
 }
@@ -155,7 +128,7 @@ nav {
     background: var(--blanco);
     transform: translateY(-3px);
     box-shadow:
-        0 10px 25px rgba(201, 255, 56, 0.2);
+        0 10px 25px rgba(245, 246, 255, 0.2);
 }
 /* =========================
    HERO
