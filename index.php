@@ -11,7 +11,8 @@ if ($conn->connect_error){
 $conn->connect_error);
 }
 
-$conn->set_chartset("utf8");
+$conn->set_charset("utf8");
+echo "conexion exitosa a la base de datos";
 
 ?>
 
