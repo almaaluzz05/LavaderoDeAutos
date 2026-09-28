@@ -820,8 +820,10 @@ footer {
 .botones-servicio  .boton-carrito{
     flex:1;
 }
+
 .boton-carrito {
   padding:11px 18px;
+  width: 10;
   border: none;
   border-radius: 30px;
   background-color: var(--violeta-oscuro);
