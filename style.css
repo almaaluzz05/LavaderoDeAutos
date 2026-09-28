@@ -1,7 +1,5 @@
 /* =====================================================
    ALMA DETAILING
-   ESTILOS GENERALES
-   HTML5 + CSS3 PURO
 ===================================================== */
 /* =========================
    VARIABLES
@@ -796,7 +794,6 @@ footer {
 /* =========================
    CARRITO
 ========================= */
-
 .carrito {
     margin-top: 60px;
     padding: 35px;
@@ -813,18 +810,26 @@ footer {
     color: var(--blanco);
     font-size: 32px;
 }
+.botones-servicio {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
 
+.botones-servicio  .boton-secundario,
+.botones-servicio  .boton-carrito{
+    flex:1;
+}
 .boton-carrito {
-    width: 100%;
-    margin-top: 10px;
-    padding: 12px;
-    border: none;
-    border-radius: 30px;
-    background: var(--violeta);
-    color: var(--negro);
-    font-weight: bold;
-    cursor: pointer;
-    transition: var(--transicion);
+  padding:11px 18px;
+  border: none;
+  border-radius: 30px;
+  background-color: var(--violeta-oscuro);
+  color: var(-negro);
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:var(--transicion);
 }
 
 .boton-carrito:hover {
