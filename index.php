@@ -1,34 +1,553 @@
-<?php
-require "conexion.php";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ALMA Detailing | Lavadero de Autos</title>
+<!-- Conexión con CSS -->
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-$nombre   = $_POST['nombre'];
-$telefono = $_POST['telefono'];
-$patente  = $_POST['patente'];
-$marca    = $_POST['marca'];
-$modelo   = $_POST['modelo'];
-$servicio = (int)$_POST['servicio'];
-$fecha    = $_POST['fecha'];
-$hora     = $_POST['hora'];
+<!-- =========================
+ENCABEZADO
+========================== -->
+<header>
+<nav>
+<a href="#inicio" class="logo">
+<img src="img/Logo.png" alt="logo">
+<span>ALMA</span>
+<small>DETAILING</small>
+</a>
 
-$conn->begin_transaction();
-try {
-    $st = $conn->prepare("INSERT INTO clientes (nombre, telefono) VALUES (?, ?)");
-    $st->bind_param("ss", $nombre, $telefono);
-    $st->execute();
-    $id_cliente = $conn->insert_id;
+<div class="menu">
+<a href="#inicio">Inicio</a>
+<a href="#servicios">Servicios</a>
+<a href="#reserva">Reservar turno</a>
+<a href="#contacto">Contacto</a>
+</div>
 
-    $st = $conn->prepare("INSERT INTO vehiculos (id_cliente, patente, marca, modelo) VALUES (?, ?, ?, ?)");
-    $st->bind_param("isss", $id_cliente, $patente, $marca, $modelo);
-    $st->execute();
-    $id_vehiculo = $conn->insert_id;
+<a href="#reserva" class="boton-nav">Reservar</a>
+</nav>
+</header>
 
-    $st = $conn->prepare("INSERT INTO turnos (id_cliente, id_vehiculo, id_servicio, fecha, hora) VALUES (?, ?, ?, ?, ?)");
-    $st->bind_param("iiiss", $id_cliente, $id_vehiculo, $servicio, $fecha, $hora);
-    $st->execute();
+<main>
 
-    $conn->commit();
-    echo "Turno reservado con éxito";
-} catch (Exception $e) {
-    $conn->rollback();
-    echo "Error al guardar el turno";
-}
+<!-- FORMULARIO ÚNICO: todos los campos de abajo apuntan a este form con form="form-reserva" -->
+<form id="form-reserva" method="POST" action="guardar_turno.php"></form>
+
+<!-- =========================
+HERO / PÁGINA PRINCIPAL
+========================== -->
+<section id="inicio" class="hero">
+<img src="img/fotoprincipal.jpg" class="foto-fondo">
+<div class="hero-contenido">
+<p class="subtitulo">LAVADO · DETAILING · CUIDADO PREMIUM</p>
+<h1>TU AUTO,<br><span>COMO NUEVO.</span></h1>
+<p class="descripcion">Devolvemos el brillo que tu auto merece.</p>
+<a href="#reserva" class="boton-principal">RESERVAR TURNO →</a>
+</div>
+</section>
+
+<!-- =========================
+INTRODUCCIÓN
+========================== -->
+<section class="introduccion">
+<div class="contenedor">
+<div>
+<p class="subtitulo">CUIDAMOS CADA DETALLE</p>
+<h2>Más que un lavado.<br><span>Una experiencia.</span></h2>
+</div>
+<p>
+Trabajamos cada vehículo con dedicación y productos
+pensados para devolverle su mejor aspecto.
+Elegí el servicio que necesita tu auto y dejalo en
+nuestras manos.
+</p>
+</div>
+</section>
+
+<!-- =========================
+RESERVA - DATOS CLIENTE
+========================== -->
+<section id="reserva" class="seccion reserva">
+<div class="contenedor">
+
+<div class="titulo-seccion">
+<p class="subtitulo">PRIMER PASO</p>
+<h2>Reservá tu turno</h2>
+<p>Completá tus datos para preparar tu reserva.</p>
+</div>
+
+<form>
+<div class="paso">
+<div class="numero-paso">01</div>
+<div class="contenido-paso">
+<h3>Datos del cliente</h3>
+
+<div class="formulario-grid">
+<label>
+Nombre y apellido
+<input type="text" name="nombre" form="form-reserva" placeholder="Ej: Lucas Diaz" required>
+</label>
+
+<label>
+Número de teléfono
+<input type="tel" name="telefono" form="form-reserva" placeholder="Ej. 11 1234-5678" required>
+</label>
+
+<label>
+Patente
+<input type="text" name="patente" form="form-reserva" placeholder="Ej. AA 123 AA" required>
+</label>
+</div>
+</div>
+</div>
+</form>
+
+</div>
+</section>
+
+<!-- =========================
+DATOS DEL VEHÍCULO
+========================== -->
+<section class="seccion vehiculo">
+<div class="contenedor">
+
+<div class="titulo-seccion">
+<p class="subtitulo">SEGUNDO PASO</p>
+<h2>Datos del vehículo</h2>
+<p>Contanos un poco más sobre el vehículo que vamos a cuidar.</p>
+</div>
+
+<form>
+<div class="paso">
+<div class="numero-paso">02</div>
+<div class="contenido-paso">
+<h3>Información del vehículo</h3>
+
+<div class="formulario-grid">
+<label>
+Marca (opcional)
+<input type="text" name="marca" form="form-reserva" placeholder="Ej. Toyota">
+</label>
+
+<label>
+Modelo
+<input type="text" name="modelo" form="form-reserva" placeholder="Ej. Corolla" required>
+</label>
+
+<label>
+Tipo de vehículo
+<select name="tipo" form="form-reserva" required>
+<option value="">Seleccionar</option>
+<option value="auto">Auto</option>
+<option value="camioneta">Camioneta</option>
+<option value="suv">SUV</option>
+<option value="utilitario">Utilitario</option>
+<option value="otro">Otro</option>
+</select>
+</label>
+</div>
+</div>
+</div>
+</form>
+
+</div>
+</section>
+
+<!-- =========================
+SERVICIOS
+========================== -->
+<section id="servicios" class="seccion servicios">
+<div class="contenedor">
+
+<div class="titulo-seccion centrado">
+<p class="subtitulo">CALIDAD EN CADA SERVICIO</p>
+<h2>NUESTROS SERVICIOS</h2>
+<p>Elegí el cuidado ideal para que tu vehículo vuelva a brillar.</p>
+</div>
+
+<div class="servicios-grid">
+
+<!-- SERVICIO 1 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/limpieza-exterior.jpg" alt="Lavado exterior">
+</div>
+<div class="contenido-servicio">
+<h3>Lavado exterior</h3>
+<p>Lavado completo de carrocería para recuperar el brillo.</p>
+<strong>$45.000</strong>
+<a href="#detalle-exterior" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Lavado exterior" data-precio="45000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 2 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/interior.jpg" alt="Lavado interior">
+</div>
+<div class="contenido-servicio">
+<h3>Lavado interior</h3>
+<p>Aspirado y limpieza de las superficies interiores.</p>
+<strong>$50.000</strong>
+<a href="#detalle-interior" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Lavado interior" data-precio="50000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 3 -->
+<article class="tarjeta-servicio destacado">
+<div class="imagen-servicio">
+<img src="img/lavado completo.png" alt="Lavado completo">
+<b>RECOMENDADO</b>
+</div>
+<div class="contenido-servicio">
+<h3>Lavado completo</h3>
+<p>Exterior e interior para una limpieza integral.</p>
+<strong>$100.000</strong>
+<a href="#detalle-completo" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Lavado completo" data-precio="100000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 4 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/motor lavado.png" alt="Lavado de motor">
+</div>
+<div class="contenido-servicio">
+<h3>Lavado de motor</h3>
+<p>Limpieza cuidadosa del compartimento del motor.</p>
+<strong>$80.000</strong>
+<a href="#detalle-motor" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Lavado de motor" data-precio="80000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 5 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/limpieza profunda.png" alt="Limpieza profunda">
+</div>
+<div class="contenido-servicio">
+<h3>Limpieza profunda</h3>
+<p>Tratamiento intensivo para suciedad acumulada.</p>
+<strong>$95.000</strong>
+<a href="#detalle-profunda" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Limpieza profunda" data-precio="95000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 6 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/tapizados.png" alt="Limpieza de tapizados">
+</div>
+<div class="contenido-servicio">
+<h3>Limpieza de tapizados</h3>
+<p>Higienización y limpieza de telas y tapizados.</p>
+<strong>$440.000</strong>
+<a href="#detalle-tapizados" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Limpieza de tapizados" data-precio="440000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 7 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/pulido y encerado.png" alt="Pulido y encerado">
+</div>
+<div class="contenido-servicio">
+<h3>Pulido y Encerado</h3>
+<p>Tratamiento para mejorar el acabado de la pintura.</p>
+<strong>$155.000</strong>
+<a href="#detalle-pulido" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Pulido y Encerado" data-precio="155000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+<!-- SERVICIO 8 -->
+<article class="tarjeta-servicio">
+<div class="imagen-servicio">
+<img src="img/detailing.jpg" alt="Detailing">
+</div>
+<div class="contenido-servicio">
+<h3>Detailing</h3>
+<p>Cuidado premium y atención minuciosa de cada detalle.</p>
+<strong>$300.000</strong>
+<a href="#detalle-detailing" class="boton-secundario">VER SERVICIO</a>
+<button type="button" class="boton-carrito" data-nombre="Detailing" data-precio="300000">AGREGAR AL CARRITO</button>
+</div>
+</article>
+
+</div>
+
+<div class="carrito">
+<div class="carrito-titulo">
+<p class="subtitulo">TU SELECCION</p>
+<h2>Carrito de servicios</h2>
+</div>
+
+<div id="lista-carrito">
+<p class="carrito-vacio">Todavia no agregaste ningún servicio</p>
+</div>
+
+<div class="carrito_total">
+<span>Total</span>
+<strong id="total-carrito">$0</strong>
+</div>
+</div>
+
+</div>
+</section>
+
+<!-- =========================
+DETALLE DE SERVICIO
+========================== -->
+<section class="seccion detalles">
+<div class="contenedor">
+
+<div class="titulo-seccion centrado">
+<p class="subtitulo">CONOCÉ NUESTRO TRABAJO</p>
+<h2>DETALLE DE SERVICIOS</h2>
+</div>
+
+<article id="detalle-completo" class="detalle-servicio">
+<div class="detalle-imagen"><span>03</span></div>
+
+<div class="imagen-servicio">
+<img src="img/lavado completo03" alt="Lavado completo">
+</div>
+
+<div class="detalle-contenido">
+<p class="subtitulo">SERVICIO 03</p>
+<h2>Lavado completo</h2>
+<strong class="precio">$100.000</strong>
+<p>Una limpieza integral para renovar el aspecto exterior e interior del vehículo.</p>
+
+<h3>Incluye</h3>
+<ul>
+<li>Lavado exterior</li>
+<li>Limpieza de llantas</li>
+<li>Limpieza de vidrios</li>
+<li>Aspirado interior</li>
+<li>Limpieza de tablero</li>
+<li>Limpieza de alfombras</li>
+</ul>
+
+<p><strong>Duración aproximada:</strong> 1 h 30 min</p>
+
+<a href="#reserva" class="boton-principal">RESERVAR ESTE SERVICIO →</a>
+</div>
+</article>
+
+</div>
+</section>
+
+<!-- =========================
+ELECCIÓN DE TURNO
+========================== -->
+<section class="seccion horarios">
+<div class="contenedor">
+
+<div class="titulo-seccion centrado">
+<p class="subtitulo">TERCER PASO</p>
+<h2>Elegí tu turno</h2>
+<p>Seleccioná una fecha, horario y servicio.</p>
+</div>
+
+<div class="formulario-turno">
+
+<label>
+Fecha
+<input type="date" name="fecha" form="form-reserva" min="<?php echo date('Y-m-d'); ?>" required>
+</label>
+
+<label>
+Hora
+<select name="hora" form="form-reserva" required>
+<option value="">Seleccionar horario</option>
+<option value="09:00">09:00</option>
+<option value="10:00">10:00</option>
+<option value="11:00">11:00</option>
+<option value="12:00">12:00</option>
+<option value="14:00">14:00</option>
+<option value="15:00">15:00</option>
+<option value="16:00">16:00</option>
+<option value="17:00">17:00</option>
+</select>
+</label>
+
+<label>
+Servicio seleccionado
+<select name="servicio" form="form-reserva" required>
+<option value="">Seleccionar servicio</option>
+<option value="1">Lavado exterior</option>
+<option value="2">Lavado interior</option>
+<option value="3">Lavado completo</option>
+<option value="4">Lavado de motor</option>
+<option value="5">Limpieza profunda</option>
+<option value="6">Limpieza de tapizados</option>
+<option value="7">Pulido y Encerado</option>
+<option value="8">Detailing</option>
+</select>
+</label>
+
+<div class="horarios-disponibles">
+<p>Horarios disponibles</p>
+<div>
+<span>09:00</span>
+<span>10:00</span>
+<span>11:00</span>
+<span>12:00</span>
+<span>14:00</span>
+<span>15:00</span>
+<span>16:00</span>
+<span>17:00</span>
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- =========================
+CONFIRMACIÓN
+========================== -->
+<section class="seccion confirmacion">
+<div class="contenedor">
+<div class="tarjeta-confirmacion">
+
+<div class="encabezado-confirmacion">
+<div>
+<p class="subtitulo">ÚLTIMO PASO</p>
+<h2>CONFIRMÁ TU TURNO</h2>
+</div>
+<span>RESERVA PREVIA</span>
+</div>
+
+<div class="resumen">
+<div><span>Cliente</span><strong>Nombre completo</strong></div>
+<div><span>Teléfono</span><strong>Número de teléfono</strong></div>
+<div><span>Vehículo</span><strong>Marca + Modelo</strong></div>
+<div><span>Patente</span><strong>XXX 000</strong></div>
+<div><span>Servicio</span><strong>Lavado completo</strong></div>
+<div><span>Fecha</span><strong>DD/MM/AAAA</strong></div>
+<div><span>Hora</span><strong>HH:MM</strong></div>
+<div><span>Precio</span><strong>$XX.XXX</strong></div>
+</div>
+
+<div class="acciones-confirmacion">
+<button type="submit" form="form-reserva" class="boton-principal">CONFIRMAR TURNO</button>
+<a href="#reserva" class="boton-secundario">MODIFICAR DATOS</a>
+</div>
+
+</div>
+</div>
+</section>
+
+</main>
+
+<!-- =========================
+FOOTER
+========================== -->
+ <footer id="contacto">
+
+        <div class="contenedor footer-grid">
+
+            <div>
+
+                <a href="#inicio" class="logo">
+                    <span>ALMA</span>
+                    <small>DETAILING</small>
+                </a>
+
+                <p>
+                    Tu auto merece volver a brillar.
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Encontranos
+                </h3>
+
+                <p>
+                    Av. Ejemplo 1234<br>
+                    Buenos Aires, Argentina
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Contacto
+                </h3>
+
+                <p>
+                    +54 11 1234-5678<br>
+                    info@almadetailing.com
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Horarios
+                </h3>
+
+                <p>
+                    Lunes a sábado<br>
+                    09:00 a 18:00
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <h3>
+                    Seguinos
+                </h3>
+
+                <div class="redes">
+
+                    <a href="#">
+                        Instagram
+                    </a>
+
+                    <a href="#">
+                        WhatsApp
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer-bottom">
+
+            <p>
+                ©️ 2026 ALMA Detailing.
+                Todos los derechos reservados.
+            </p>
+
+            <p>
+                HTML5 + CSS3
+            </p>
+
+        </div>
+
+    </footer>
