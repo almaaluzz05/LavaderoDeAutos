@@ -58,7 +58,7 @@ th { background: #222; color: #fff; }
 </table>
 </div>
 
-<p><a href="index.php">← Volver al inicio</a></p>
+<p><a href="index.php">← Volver al inicio</a></p> 
 
 </body>
 </html>
