@@ -1,10 +1,111 @@
+<?php
+require_once __DIR__ . "/conexion.php";
+
+// Verificar que exista la conexión
+if (!isset($conn) || !($conn instanceof mysqli)) {
+    die("Error: no se pudo establecer la conexión con la base de datos.");
+}
+
+// Horarios disponibles.
+$HORAS_TURNO = [
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00"
+];
+
+// Obtener servicios de la base de datos
+$sql = "SELECT id_servicio, nombre, precio, descripcion, duracion
+        FROM servicios
+        ORDER BY id_servicio";
+
+$resultado = $conn->query($sql);
+
+if (!$resultado) {
+    die("Error al consultar los servicios: " . $conn->error);
+}
+
+$servicios = $resultado->fetch_all(MYSQLI_ASSOC);
+
+// Imágenes de los servicios
+$imagenes = [
+    1 => "img/limpieza-exterior.jpg",
+    2 => "img/interior.jpg",
+    3 => "img/lavado completo.png",
+    4 => "img/motor lavado.png",
+    5 => "img/limpieza profunda.png",
+    6 => "img/tapizados.png",
+    7 => "img/pulido y encerado.png",
+    8 => "img/detailing.jpg",
+];
+
+// Elementos incluidos en algunos servicios
+$incluye = [
+    3 => [
+        "Lavado exterior",
+        "Limpieza de llantas",
+        "Limpieza de vidrios",
+        "Aspirado interior",
+        "Limpieza de tablero",
+        "Limpieza de alfombras"
+    ]
+];
+
+// Mensajes de respuesta de la reserva
+$estado = $_GET["reserva"] ?? "";
+$turno_n = (int)($_GET["n"] ?? 0);
+
+$avisos = [
+    "ok" => [
+        "exito",
+        "¡Turno reservado con éxito!" .
+        ($turno_n ? " Tu número de turno es #$turno_n." : "") .
+        " Te esperamos."
+    ],
+    "ocupado" => [
+        "error",
+        "Ese horario ya fue reservado por otra persona. Elegí otro horario."
+    ],
+    "datos" => [
+        "error",
+        "Revisá los datos: falta algún campo o alguno no es válido."
+    ],
+    "error" => [
+        "error",
+        "No pudimos guardar tu turno. Intentá de nuevo."
+    ]
+];
+
+// Funciones auxiliares
+function e($t) {
+    return htmlspecialchars(
+        (string)$t,
+        ENT_QUOTES,
+        "UTF-8"
+    );
+}
+
+function ruta($r) {
+    return e(str_replace(" ", "%20", $r));
+}
+
+function pesos($n) {
+    return "$" . number_format((float)$n, 0, ",", ".");
+}
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALMA Detailing | Lavadero de Autos</title>
-<!-- Conexión con CSS -->
+<meta name="description" content="ALMA Detailing: lavado, limpieza y detailing para tu auto. Reservá tu turno online.">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,14 +114,14 @@
 ENCABEZADO
 ========================== -->
 <header>
-<nav>
+<nav id="nav">
 <a href="#inicio" class="logo">
-<img src="img/Logo.png" alt="logo">
-<span>ALMA</span>
-<small>DETAILING</small>
+<img src="img/Logo.png" alt="Logo ALMA Detailing">
 </a>
 
-<div class="menu">
+<button type="button" class="menu-boton" id="menu-boton" aria-label="Abrir menú" aria-expanded="false">☰</button>
+
+<div class="menu" id="menu">
 <a href="#inicio">Inicio</a>
 <a href="#servicios">Servicios</a>
 <a href="#reserva">Reservar turno</a>
@@ -33,14 +134,11 @@ ENCABEZADO
 
 <main>
 
-<!-- FORMULARIO ÚNICO: todos los campos de abajo apuntan a este form con form="form-reserva" -->
-<form id="form-reserva" method="POST" action="guardar_turno.php"></form>
-
 <!-- =========================
-HERO / PÁGINA PRINCIPAL
+HERO
 ========================== -->
 <section id="inicio" class="hero">
-<img src="img/fotoprincipal.jpg" class="foto-fondo">
+<img src="img/fotoprincipal.jpg" class="foto-fondo" alt="">
 <div class="hero-contenido">
 <p class="subtitulo">LAVADO · DETAILING · CUIDADO PREMIUM</p>
 <h1>TU AUTO,<br><span>COMO NUEVO.</span></h1>
@@ -59,19 +157,26 @@ INTRODUCCIÓN
 <h2>Más que un lavado.<br><span>Una experiencia.</span></h2>
 </div>
 <p>
-Trabajamos cada vehículo con dedicación y productos
-pensados para devolverle su mejor aspecto.
-Elegí el servicio que necesita tu auto y dejalo en
-nuestras manos.
+Trabajamos cada vehículo con dedicación y productos pensados para devolverle
+su mejor aspecto. Elegí el servicio que necesita tu auto y dejalo en nuestras manos.
 </p>
 </div>
 </section>
 
 <!-- =========================
-RESERVA - DATOS CLIENTE
+FORMULARIO ÚNICO DE RESERVA
 ========================== -->
+<form id="form-reserva" method="POST" action="guardar_turno.php">
+
+<!-- PASO 1: DATOS DEL CLIENTE -->
 <section id="reserva" class="seccion reserva">
 <div class="contenedor">
+
+<?php if (isset($avisos[$estado])): ?>
+<div id="reserva-estado" class="aviso <?= $avisos[$estado][0] ?>" role="alert">
+<?= e($avisos[$estado][1]) ?>
+</div>
+<?php endif; ?>
 
 <div class="titulo-seccion">
 <p class="subtitulo">PRIMER PASO</p>
@@ -79,7 +184,6 @@ RESERVA - DATOS CLIENTE
 <p>Completá tus datos para preparar tu reserva.</p>
 </div>
 
-<form>
 <div class="paso">
 <div class="numero-paso">01</div>
 <div class="contenido-paso">
@@ -88,30 +192,29 @@ RESERVA - DATOS CLIENTE
 <div class="formulario-grid">
 <label>
 Nombre y apellido
-<input type="text" name="nombre" form="form-reserva" placeholder="Ej: Lucas Diaz" required>
+<input type="text" name="nombre" placeholder="Ej: Lucas Diaz" maxlength="100" required>
 </label>
 
 <label>
 Número de teléfono
-<input type="tel" name="telefono" form="form-reserva" placeholder="Ej. 11 1234-5678" required>
+<input type="tel" name="telefono" placeholder="Ej. 11 1234-5678" maxlength="30" required>
 </label>
 
 <label>
 Patente
-<input type="text" name="patente" form="form-reserva" placeholder="Ej. AA 123 AA" required>
+<input type="text" name="patente" placeholder="Ej. AA 123 AA" maxlength="20" required>
 </label>
 </div>
+
+<a href="#vehiculo" class="boton-principal">CONTINUAR →</a>
 </div>
 </div>
-</form>
 
 </div>
 </section>
 
-<!-- =========================
-DATOS DEL VEHÍCULO
-========================== -->
-<section class="seccion vehiculo">
+<!-- PASO 2: DATOS DEL VEHÍCULO -->
+<section id="vehiculo" class="seccion vehiculo">
 <div class="contenedor">
 
 <div class="titulo-seccion">
@@ -120,7 +223,6 @@ DATOS DEL VEHÍCULO
 <p>Contanos un poco más sobre el vehículo que vamos a cuidar.</p>
 </div>
 
-<form>
 <div class="paso">
 <div class="numero-paso">02</div>
 <div class="contenido-paso">
@@ -128,18 +230,18 @@ DATOS DEL VEHÍCULO
 
 <div class="formulario-grid">
 <label>
-Marca (opcional)
-<input type="text" name="marca" form="form-reserva" placeholder="Ej. Toyota">
+Marca <small>(opcional)</small>
+<input type="text" name="marca" placeholder="Ej. Toyota" maxlength="50">
 </label>
 
 <label>
 Modelo
-<input type="text" name="modelo" form="form-reserva" placeholder="Ej. Corolla" required>
+<input type="text" name="modelo" placeholder="Ej. Corolla" maxlength="50" required>
 </label>
 
 <label>
 Tipo de vehículo
-<select name="tipo" form="form-reserva" required>
+<select name="tipo" required>
 <option value="">Seleccionar</option>
 <option value="auto">Auto</option>
 <option value="camioneta">Camioneta</option>
@@ -149,16 +251,14 @@ Tipo de vehículo
 </select>
 </label>
 </div>
-</div>
-</div>
-</form>
 
+<a href="#servicios" class="boton-principal">CONTINUAR →</a>
+</div>
+</div>
 </div>
 </section>
 
-<!-- =========================
-SERVICIOS
-========================== -->
+<!-- SERVICIOS -->
 <section id="servicios" class="seccion servicios">
 <div class="contenedor">
 
@@ -169,133 +269,50 @@ SERVICIOS
 </div>
 
 <div class="servicios-grid">
+<?php foreach ($servicios as $s):
+    $id  = (int)$s['id_servicio'];
+    $img = $imagenes[$id] ?? "img/fotoprincipal.jpg";
+    $inc = $incluye[$id] ?? [];
+    $destacado = ($id === 3);
+?>
+<article class="tarjeta-servicio<?= $destacado ? ' destacado' : '' ?>"
+    data-id="<?= $id ?>"
+    data-nombre="<?= e($s['nombre']) ?>"
+    data-precio="<?= (int)$s['precio'] ?>"
+    data-duracion="<?= e($s['duracion']) ?>"
+    data-desc="<?= e($s['descripcion']) ?>"
+    data-img="<?= ruta($img) ?>"
+    data-incluye="<?= e(json_encode($inc, JSON_UNESCAPED_UNICODE)) ?>">
 
-<!-- SERVICIO 1 -->
-<article class="tarjeta-servicio">
 <div class="imagen-servicio">
-<img src="img/limpieza-exterior.jpg" alt="Lavado exterior">
+<img src="<?= ruta($img) ?>" alt="<?= e($s['nombre']) ?>" loading="lazy">
+<?php if ($destacado): ?><b class="insignia">RECOMENDADO</b><?php endif; ?>
 </div>
 <div class="contenido-servicio">
-<h3>Lavado exterior</h3>
-<p>Lavado completo de carrocería para recuperar el brillo.</p>
-<strong>$45.000</strong>
-<a href="#detalle-exterior" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Lavado exterior" data-precio="45000">AGREGAR AL CARRITO</button>
+<h3><?= e($s['nombre']) ?></h3>
+<p><?= e($s['descripcion']) ?></p>
+<strong class="precio-servicio"><?= pesos($s['precio']) ?></strong>
+
+ <div class="botones-servicio">
+<button type="button" class="boton-secundario boton-ver">VER SERVICIO</button>
+<button type="button" class="boton-carrito boton-elegir">ELEGIR SERVICIO</button>
+ </div>
 </div>
 </article>
-
-<!-- SERVICIO 2 -->
-<article class="tarjeta-servicio">
-<div class="imagen-servicio">
-<img src="img/interior.jpg" alt="Lavado interior">
-</div>
-<div class="contenido-servicio">
-<h3>Lavado interior</h3>
-<p>Aspirado y limpieza de las superficies interiores.</p>
-<strong>$50.000</strong>
-<a href="#detalle-interior" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Lavado interior" data-precio="50000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
-<!-- SERVICIO 3 -->
-<article class="tarjeta-servicio destacado">
-<div class="imagen-servicio">
-<img src="img/lavado completo.png" alt="Lavado completo">
-<b>RECOMENDADO</b>
-</div>
-<div class="contenido-servicio">
-<h3>Lavado completo</h3>
-<p>Exterior e interior para una limpieza integral.</p>
-<strong>$100.000</strong>
-<a href="#detalle-completo" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Lavado completo" data-precio="100000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
-<!-- SERVICIO 4 -->
-<article class="tarjeta-servicio">
-<div class="imagen-servicio">
-<img src="img/motor lavado.png" alt="Lavado de motor">
-</div>
-<div class="contenido-servicio">
-<h3>Lavado de motor</h3>
-<p>Limpieza cuidadosa del compartimento del motor.</p>
-<strong>$80.000</strong>
-<a href="#detalle-motor" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Lavado de motor" data-precio="80000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
-<!-- SERVICIO 5 -->
-<article class="tarjeta-servicio">
-<div class="imagen-servicio">
-<img src="img/limpieza profunda.png" alt="Limpieza profunda">
-</div>
-<div class="contenido-servicio">
-<h3>Limpieza profunda</h3>
-<p>Tratamiento intensivo para suciedad acumulada.</p>
-<strong>$95.000</strong>
-<a href="#detalle-profunda" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Limpieza profunda" data-precio="95000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
-<!-- SERVICIO 6 -->
-<article class="tarjeta-servicio">
-<div class="imagen-servicio">
-<img src="img/tapizados.png" alt="Limpieza de tapizados">
-</div>
-<div class="contenido-servicio">
-<h3>Limpieza de tapizados</h3>
-<p>Higienización y limpieza de telas y tapizados.</p>
-<strong>$440.000</strong>
-<a href="#detalle-tapizados" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Limpieza de tapizados" data-precio="440000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
-<!-- SERVICIO 7 -->
-<article class="tarjeta-servicio">
-<div class="imagen-servicio">
-<img src="img/pulido y encerado.png" alt="Pulido y encerado">
-</div>
-<div class="contenido-servicio">
-<h3>Pulido y Encerado</h3>
-<p>Tratamiento para mejorar el acabado de la pintura.</p>
-<strong>$155.000</strong>
-<a href="#detalle-pulido" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Pulido y Encerado" data-precio="155000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
-<!-- SERVICIO 8 -->
-<article class="tarjeta-servicio">
-<div class="imagen-servicio">
-<img src="img/detailing.jpg" alt="Detailing">
-</div>
-<div class="contenido-servicio">
-<h3>Detailing</h3>
-<p>Cuidado premium y atención minuciosa de cada detalle.</p>
-<strong>$300.000</strong>
-<a href="#detalle-detailing" class="boton-secundario">VER SERVICIO</a>
-<button type="button" class="boton-carrito" data-nombre="Detailing" data-precio="300000">AGREGAR AL CARRITO</button>
-</div>
-</article>
-
+<?php endforeach; ?>
 </div>
 
 <div class="carrito">
 <div class="carrito-titulo">
-<p class="subtitulo">TU SELECCION</p>
-<h2>Carrito de servicios</h2>
+<p class="subtitulo">TU SELECCIÓN</p>
+<h2>Servicio elegido</h2>
 </div>
 
 <div id="lista-carrito">
-<p class="carrito-vacio">Todavia no agregaste ningún servicio</p>
+<p class="carrito-vacio">Todavía no elegiste ningún servicio</p>
 </div>
 
-<div class="carrito_total">
+<div class="carrito-total">
 <span>Total</span>
 <strong id="total-carrito">$0</strong>
 </div>
@@ -304,120 +321,47 @@ SERVICIOS
 </div>
 </section>
 
-<!-- =========================
-DETALLE DE SERVICIO
-========================== -->
-<section class="seccion detalles">
-<div class="contenedor">
-
-<div class="titulo-seccion centrado">
-<p class="subtitulo">CONOCÉ NUESTRO TRABAJO</p>
-<h2>DETALLE DE SERVICIOS</h2>
-</div>
-
-<article id="detalle-completo" class="detalle-servicio">
-<div class="detalle-imagen"><span>03</span></div>
-
-<div class="imagen-servicio">
-<img src="img/lavado completo03" alt="Lavado completo">
-</div>
-
-<div class="detalle-contenido">
-<p class="subtitulo">SERVICIO 03</p>
-<h2>Lavado completo</h2>
-<strong class="precio">$100.000</strong>
-<p>Una limpieza integral para renovar el aspecto exterior e interior del vehículo.</p>
-
-<h3>Incluye</h3>
-<ul>
-<li>Lavado exterior</li>
-<li>Limpieza de llantas</li>
-<li>Limpieza de vidrios</li>
-<li>Aspirado interior</li>
-<li>Limpieza de tablero</li>
-<li>Limpieza de alfombras</li>
-</ul>
-
-<p><strong>Duración aproximada:</strong> 1 h 30 min</p>
-
-<a href="#reserva" class="boton-principal">RESERVAR ESTE SERVICIO →</a>
-</div>
-</article>
-
-</div>
-</section>
-
-<!-- =========================
-ELECCIÓN DE TURNO
-========================== -->
-<section class="seccion horarios">
+<!-- PASO 3: TURNO -->
+<section id="horarios" class="seccion horarios">
 <div class="contenedor">
 
 <div class="titulo-seccion centrado">
 <p class="subtitulo">TERCER PASO</p>
 <h2>Elegí tu turno</h2>
-<p>Seleccioná una fecha, horario y servicio.</p>
+<p>Seleccioná una fecha, un horario y el servicio.</p>
 </div>
 
 <div class="formulario-turno">
 
 <label>
 Fecha
-<input type="date" name="fecha" form="form-reserva" min="<?php echo date('Y-m-d'); ?>" required>
-</label>
-
-<label>
-Hora
-<select name="hora" form="form-reserva" required>
-<option value="">Seleccionar horario</option>
-<option value="09:00">09:00</option>
-<option value="10:00">10:00</option>
-<option value="11:00">11:00</option>
-<option value="12:00">12:00</option>
-<option value="14:00">14:00</option>
-<option value="15:00">15:00</option>
-<option value="16:00">16:00</option>
-<option value="17:00">17:00</option>
-</select>
+<input type="date" name="fecha" id="fecha" min="<?= date('Y-m-d') ?>" required>
 </label>
 
 <label>
 Servicio seleccionado
-<select name="servicio" form="form-reserva" required>
+<select name="servicio" id="servicio" required>
 <option value="">Seleccionar servicio</option>
-<option value="1">Lavado exterior</option>
-<option value="2">Lavado interior</option>
-<option value="3">Lavado completo</option>
-<option value="4">Lavado de motor</option>
-<option value="5">Limpieza profunda</option>
-<option value="6">Limpieza de tapizados</option>
-<option value="7">Pulido y Encerado</option>
-<option value="8">Detailing</option>
+<?php foreach ($servicios as $s): ?>
+<option value="<?= (int)$s['id_servicio'] ?>"><?= e($s['nombre']) ?></option>
+<?php endforeach; ?>
 </select>
 </label>
 
 <div class="horarios-disponibles">
 <p>Horarios disponibles</p>
-<div>
-<span>09:00</span>
-<span>10:00</span>
-<span>11:00</span>
-<span>12:00</span>
-<span>14:00</span>
-<span>15:00</span>
-<span>16:00</span>
-<span>17:00</span>
+<div id="horas" class="horas-grid" data-horas="<?= e(json_encode($HORAS_TURNO)) ?>">
+<span class="aviso-horarios">Elegí una fecha para ver los horarios disponibles.</span>
 </div>
+<input type="hidden" name="hora" id="hora">
 </div>
 
 </div>
 </div>
 </section>
 
-<!-- =========================
-CONFIRMACIÓN
-========================== -->
-<section class="seccion confirmacion">
+<!-- CONFIRMACIÓN -->
+<section id="confirmacion" class="seccion confirmacion">
 <div class="contenedor">
 <div class="tarjeta-confirmacion">
 
@@ -430,18 +374,20 @@ CONFIRMACIÓN
 </div>
 
 <div class="resumen">
-<div><span>Cliente</span><strong>Nombre completo</strong></div>
-<div><span>Teléfono</span><strong>Número de teléfono</strong></div>
-<div><span>Vehículo</span><strong>Marca + Modelo</strong></div>
-<div><span>Patente</span><strong>XXX 000</strong></div>
-<div><span>Servicio</span><strong>Lavado completo</strong></div>
-<div><span>Fecha</span><strong>DD/MM/AAAA</strong></div>
-<div><span>Hora</span><strong>HH:MM</strong></div>
-<div><span>Precio</span><strong>$XX.XXX</strong></div>
+<div><span>Cliente</span><strong id="res-cliente">—</strong></div>
+<div><span>Teléfono</span><strong id="res-telefono">—</strong></div>
+<div><span>Vehículo</span><strong id="res-vehiculo">—</strong></div>
+<div><span>Patente</span><strong id="res-patente">—</strong></div>
+<div><span>Servicio</span><strong id="res-servicio">—</strong></div>
+<div><span>Fecha</span><strong id="res-fecha">—</strong></div>
+<div><span>Hora</span><strong id="res-hora">—</strong></div>
+<div><span>Precio</span><strong id="res-precio">—</strong></div>
 </div>
 
+<div id="aviso-form" class="aviso error" role="alert" hidden></div>
+
 <div class="acciones-confirmacion">
-<button type="submit" form="form-reserva" class="boton-principal">CONFIRMAR TURNO</button>
+<button type="submit" class="boton-principal" id="boton-confirmar">CONFIRMAR TURNO</button>
 <a href="#reserva" class="boton-secundario">MODIFICAR DATOS</a>
 </div>
 
@@ -449,105 +395,56 @@ CONFIRMACIÓN
 </div>
 </section>
 
+</form>
+
 </main>
+
+<!-- =========================
+DETALLE DE SERVICIO (ventana)
+========================== -->
+<dialog id="detalle">
+<button type="button" class="cerrar" id="detalle-cerrar" aria-label="Cerrar">×</button>
+<div class="detalle-grid">
+<img id="detalle-img" src="" alt="">
+<div class="detalle-contenido">
+<p class="subtitulo" id="detalle-num"></p>
+<h2 id="detalle-nombre"></h2>
+<strong class="precio" id="detalle-precio"></strong>
+<p id="detalle-desc"></p>
+<div id="detalle-incluye-wrap">
+<h3>Incluye</h3>
+<ul id="detalle-incluye"></ul>
+</div>
+<p><strong>Duración aproximada:</strong> <span id="detalle-duracion"></span></p>
+<button type="button" class="boton-principal" id="detalle-reservar">RESERVAR ESTE SERVICIO →</button>
+</div>
+</div>
+</dialog>
 
 <!-- =========================
 FOOTER
 ========================== -->
- <footer id="contacto">
+<footer id="contacto">
+<div class="contenedor footer-grid">
 
-        <div class="contenedor footer-grid">
+<div>
+<div class="logo-texto">
+<span>ALMA</span>
+<small>DETAILING</small>
+</div>
+<p>Lavado, limpieza y detailing para tu auto.</p>
+</div>
 
-            <div>
+<div>
+<h4>Turnos</h4>
+<p>Reservá online de <?= e($HORAS_TURNO[0]) ?> a <?= e(end($HORAS_TURNO)) ?> h.</p>
+<a href="#reserva" class="boton-secundario">RESERVAR TURNO</a>
+</div>
 
-                <a href="#inicio" class="logo">
-                    <span>ALMA</span>
-                    <small>DETAILING</small>
-                </a>
+</div>
+<p class="copy">© <?= date('Y') ?> ALMA Detailing. Todos los derechos reservados.</p>
+</footer>
 
-                <p>
-                    Tu auto merece volver a brillar.
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Encontranos
-                </h3>
-
-                <p>
-                    Av. Ejemplo 1234<br>
-                    Buenos Aires, Argentina
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Contacto
-                </h3>
-
-                <p>
-                    +54 11 1234-5678<br>
-                    info@almadetailing.com
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Horarios
-                </h3>
-
-                <p>
-                    Lunes a sábado<br>
-                    09:00 a 18:00
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Seguinos
-                </h3>
-
-                <div class="redes">
-
-                    <a href="#">
-                        Instagram
-                    </a>
-
-                    <a href="#">
-                        WhatsApp
-                    </a>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <div class="footer-bottom">
-
-            <p>
-                ©️ 2026 ALMA Detailing.
-                Todos los derechos reservados.
-            </p>
-
-            <p>
-                HTML5 + CSS3
-            </p>
-
-        </div>
-
-    </footer>
+<script src="script.js"></script>
+</body>
+</html>
