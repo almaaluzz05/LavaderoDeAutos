@@ -1,4 +1,4 @@
-🚗 ALMA Detailing
+🚗 lavadero de autos
 
 ALMA Detailing es una página web creada para un lavadero de autos, pensada para que los clientes puedan conocer los servicios disponibles y realizar una reserva de manera sencilla.
 
