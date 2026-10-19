@@ -1,3 +1,5 @@
+-- ATENCIÓN: esto borra la base "lavaderodeautos" y la crea de nuevo.
+DROP DATABASE IF EXISTS lavaderodeautos;
 CREATE DATABASE lavaderodeautos CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE lavaderodeautos;
 
